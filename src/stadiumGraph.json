@@ -1,0 +1,29 @@
+{
+  "nodes": [
+    { "id": "A1", "type": "seat", "label": "Block A - Seats", "x": 100, "y": 300 },
+    { "id": "A2", "type": "seat", "label": "Block B - Seats", "x": 700, "y": 300 },
+    { "id": "W1", "type": "washroom", "label": "North Washrooms", "x": 400, "y": 100 },
+    { "id": "W2", "type": "washroom", "label": "South Washrooms", "x": 400, "y": 500 },
+    { "id": "F1", "type": "food", "label": "West Food Court", "x": 100, "y": 100 },
+    { "id": "F2", "type": "food", "label": "East Food Court", "x": 700, "y": 100 },
+    { "id": "E1", "type": "exit", "label": "Main Exit (North)", "x": 400, "y": 20 },
+    { "id": "FE1", "type": "fire_exit", "label": "Fire Exit (West)", "x": 20, "y": 300 },
+    { "id": "FE2", "type": "fire_exit", "label": "Fire Exit (East)", "x": 780, "y": 300 },
+    { "id": "C1", "type": "corridor", "label": "Central Hub", "x": 400, "y": 300 },
+    { "id": "C2", "type": "corridor", "label": "North Corridor", "x": 400, "y": 200 },
+    { "id": "C3", "type": "corridor", "label": "South Corridor", "x": 400, "y": 400 }
+  ],
+  "edges": [
+    { "source": "A1", "target": "FE1", "weight": 1 },
+    { "source": "A1", "target": "C1", "weight": 5 },
+    { "source": "A2", "target": "FE2", "weight": 1 },
+    { "source": "A2", "target": "C1", "weight": 5 },
+    { "source": "C1", "target": "C2", "weight": 2 },
+    { "source": "C1", "target": "C3", "weight": 2 },
+    { "source": "C2", "target": "W1", "weight": 2 },
+    { "source": "C3", "target": "W2", "weight": 2 },
+    { "source": "C2", "target": "F1", "weight": 4 },
+    { "source": "C2", "target": "F2", "weight": 4 },
+    { "source": "C2", "target": "E1", "weight": 3 }
+  ]
+}

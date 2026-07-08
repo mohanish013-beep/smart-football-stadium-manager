@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-panel {
+    @apply bg-white/70 dark:bg-slate-900/50 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-xl rounded-2xl;
+  }
+  
+  .glass-button {
+    @apply bg-white/20 dark:bg-white/5 hover:bg-white/30 dark:hover:bg-white/10 backdrop-blur-sm border border-white/20 transition-all duration-300 rounded-lg;
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
