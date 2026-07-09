@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Droplet, HeartPulse, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, Droplet, HeartPulse, ShieldAlert, Radio } from 'lucide-react';
 
 export default function EmergencyPanel({ onEmergencyTriggered }) {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
@@ -10,80 +10,113 @@ export default function EmergencyPanel({ onEmergencyTriggered }) {
     setIsEmergencyActive(newState);
     onEmergencyTriggered(newState);
     if (newState) {
-      logAction("SOS Activated - User marked in distress");
+      logAction('SOS ACTIVATED — Distress signal broadcast to all units');
     } else {
-      logAction("SOS Deactivated - All clear");
+      logAction('SOS Deactivated — Stand down, all clear');
     }
   };
 
   const logAction = (action) => {
     const timestamp = new Date().toLocaleTimeString();
-    setDispatchLogs(prev => [`[${timestamp}] Staff Dispatch: ${action}`, ...prev]);
+    setDispatchLogs((prev) => [`[${timestamp}] ${action}`, ...prev.slice(0, 19)]);
   };
 
   return (
-    <div className={`glass-panel p-4 transition-colors duration-500 ${isEmergencyActive ? 'border-red-500/50 bg-red-500/10' : ''}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold text-lg flex items-center text-red-500 dark:text-red-400">
-          <AlertTriangle className="mr-2" /> Emergency SOS
-        </h2>
-        <button 
+    <div className={`space-y-4 transition-colors duration-500`}>
+      {/* SOS Trigger */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className={`text-sm font-medium ${isEmergencyActive ? 'text-red-400' : 'text-text-secondary'}`}>
+            {isEmergencyActive ? '🔴 Emergency Active' : '🟢 Status: Normal Operations'}
+          </div>
+          <div className="text-xs text-slate-muted mt-0.5">
+            {isEmergencyActive ? 'Broadcast active — units responding' : 'Click SOS to trigger emergency protocol'}
+          </div>
+        </div>
+        <button
+          id="sos-button"
           onClick={handleSosClick}
-          className={`px-4 py-2 rounded-lg font-bold text-white transition-all shadow-lg ${
-            isEmergencyActive 
-              ? 'bg-slate-800 hover:bg-slate-700' 
-              : 'bg-red-600 hover:bg-red-700 animate-pulse'
-          }`}
-          aria-label={isEmergencyActive ? "Cancel SOS" : "Trigger Emergency SOS"}
+          className={`relative px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-lg flex items-center gap-2
+            ${isEmergencyActive
+              ? 'bg-surface border border-slate-border/50 text-text-secondary hover:bg-white/5'
+              : 'bg-red-600 hover:bg-red-500 text-white border border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-pulse'
+            }`}
+          aria-label={isEmergencyActive ? 'Cancel SOS' : 'Trigger Emergency SOS'}
         >
-          {isEmergencyActive ? "CANCEL SOS" : "SOS BUTTON"}
+          {isEmergencyActive ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-slate-muted" />
+              CANCEL SOS
+            </>
+          ) : (
+            <>
+              <Radio size={14} />
+              SOS
+            </>
+          )}
         </button>
       </div>
 
+      {/* Emergency Action Buttons */}
       {isEmergencyActive && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-300">
-          <p className="text-sm font-medium text-red-600 dark:text-red-400">
-            Assistance requested. Please select your immediate need:
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 space-y-3 animate-fade-up">
+          <p className="text-xs font-semibold text-red-400 uppercase tracking-wider">
+            Select Immediate Need
           </p>
           <div className="grid grid-cols-3 gap-2">
-            <button 
-              onClick={() => logAction("Requested Water at Seat")}
-              className="flex flex-col items-center justify-center p-3 glass-button hover:border-blue-400"
-              aria-label="I need water"
+            <button
+              id="sos-water"
+              onClick={() => logAction('Water requested at seat — Unit dispatched')}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-slate-border/30 
+                hover:border-blue-400/50 hover:bg-blue-400/5 transition-all duration-200 group"
+              aria-label="Request water"
             >
-              <Droplet className="text-blue-400 mb-1" size={24} />
-              <span className="text-xs font-medium">Water</span>
+              <Droplet className="text-blue-400 mb-1.5 group-hover:scale-110 transition-transform" size={22} />
+              <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary">Water</span>
             </button>
-            <button 
-              onClick={() => logAction("Requested Medical Help")}
-              className="flex flex-col items-center justify-center p-3 glass-button hover:border-red-400"
-              aria-label="Medical Help"
+            <button
+              id="sos-medical"
+              onClick={() => logAction('Medical emergency — Paramedic unit en route')}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-slate-border/30 
+                hover:border-red-400/50 hover:bg-red-400/5 transition-all duration-200 group"
+              aria-label="Request medical help"
             >
-              <HeartPulse className="text-red-400 mb-1" size={24} />
-              <span className="text-xs font-medium">Medical</span>
+              <HeartPulse className="text-red-400 mb-1.5 group-hover:scale-110 transition-transform" size={22} />
+              <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary">Medical</span>
             </button>
-            <button 
-              onClick={() => logAction("Requested Security")}
-              className="flex flex-col items-center justify-center p-3 glass-button hover:border-yellow-400"
-              aria-label="Security"
+            <button
+              id="sos-security"
+              onClick={() => logAction('Security requested — Armed unit responding')}
+              className="flex flex-col items-center justify-center p-3 rounded-xl bg-surface border border-slate-border/30 
+                hover:border-amber-400/50 hover:bg-amber-400/5 transition-all duration-200 group"
+              aria-label="Request security"
             >
-              <ShieldAlert className="text-yellow-400 mb-1" size={24} />
-              <span className="text-xs font-medium">Security</span>
+              <ShieldAlert className="text-amber-400 mb-1.5 group-hover:scale-110 transition-transform" size={22} />
+              <span className="text-xs font-medium text-text-secondary group-hover:text-text-primary">Security</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* Screen Reader and Staff Dispatch Log */}
-      <div 
-        className="mt-4 p-3 bg-black/20 rounded-lg h-24 overflow-y-auto text-xs font-mono opacity-80"
+      {/* Dispatch Log */}
+      <div
+        className="bg-midnight/60 border border-slate-border/20 rounded-xl p-3 h-32 overflow-y-auto scrollbar-thin"
         aria-live="assertive"
+        aria-label="Staff dispatch log"
       >
-        <div className="font-semibold mb-1 opacity-50">Staff Dispatch Logs:</div>
-        {dispatchLogs.length === 0 && <div className="italic opacity-50">No active dispatches.</div>}
-        {dispatchLogs.map((log, i) => (
-          <div key={i} className="text-slate-700 dark:text-slate-300">{log}</div>
-        ))}
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-muted mb-2 flex items-center gap-1.5">
+          <div className={`w-1 h-1 rounded-full ${dispatchLogs.length > 0 ? 'bg-cyan-accent animate-pulse' : 'bg-slate-muted'}`} />
+          Dispatch Log
+        </div>
+        {dispatchLogs.length === 0 ? (
+          <div className="text-xs text-slate-muted italic">No active dispatches.</div>
+        ) : (
+          dispatchLogs.map((log, i) => (
+            <div key={i} className="text-xs font-mono text-text-secondary py-0.5 border-b border-slate-border/10 last:border-0">
+              {log}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

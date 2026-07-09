@@ -1,9 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mic, Send, Bot, User } from 'lucide-react';
-import { processQuery } from '../services/aiService';
+import { Mic, Send, Bot, User, MicOff } from 'lucide-react';
+import { processQuery } from '../services/aiService.js';
 
-export default function AiAssistant() {
-  const [messages, setMessages] = useState([{ sender: 'ai', text: 'Hello! I am your stadium assistant. How can I help you navigate or translate today?' }]);
+export default function AiAssistant({ compact = false }) {
+  const [messages, setMessages] = useState([
+    {
+      sender: 'ai',
+      text: 'Stadium AI online. Ask me about navigation, facilities, crowd routing, or emergency procedures.',
+    },
+  ]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,18 +23,21 @@ export default function AiAssistant() {
   }, [messages]);
 
   const handleSend = async (text) => {
-    if (!text.trim()) return;
-    
-    const userMessage = text;
-    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    setMessages((prev) => [...prev, { sender: 'user', text: trimmed }]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await processQuery(userMessage);
-      setMessages(prev => [...prev, { sender: 'ai', text: response }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { sender: 'ai', text: 'Sorry, I encountered an error.' }]);
+      const response = await processQuery(trimmed);
+      setMessages((prev) => [...prev, { sender: 'ai', text: response }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'ai', text: 'Connection error. Please check your API configuration.' },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +45,7 @@ export default function AiAssistant() {
 
   const toggleListen = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Web Speech API is not supported in this browser.");
+      alert('Web Speech API is not supported in this browser.');
       return;
     }
 
@@ -53,75 +61,112 @@ export default function AiAssistant() {
     recognition.lang = 'en-US';
     recognition.continuous = false;
     recognition.interimResults = false;
-
     recognition.onstart = () => setIsListening(true);
-    
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       handleSend(transcript);
     };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
-      setIsListening(false);
-    };
-
+    recognition.onerror = () => setIsListening(false);
     recognition.onend = () => setIsListening(false);
-
     recognition.start();
   };
 
+  const chatHeight = compact ? 'h-[220px]' : 'h-[320px]';
+
   return (
-    <div className="glass-panel flex flex-col h-[400px] w-full" aria-label="AI Assistant Chat">
-      <div className="p-4 border-b border-white/10 flex items-center space-x-2">
-        <Bot className="text-fifa-green" />
-        <h2 className="font-semibold text-lg">AI Assistant</h2>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 space-y-4" aria-live="polite">
+    <div
+      className="flex flex-col w-full h-full"
+      aria-label="AI Assistant Chat"
+    >
+      {/* Messages */}
+      <div
+        className={`${chatHeight} overflow-y-auto scrollbar-thin space-y-3 mb-3 pr-1`}
+        aria-live="polite"
+      >
         {messages.map((msg, idx) => (
-          <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-lg p-3 ${msg.sender === 'user' ? 'bg-fifa-purple text-white' : 'bg-white/10 dark:bg-white/5'}`}>
-              <div className="flex items-center space-x-2 mb-1">
-                {msg.sender === 'user' ? <User size={14} className="opacity-70"/> : <Bot size={14} className="text-fifa-green"/>}
-                <span className="text-xs opacity-70">{msg.sender === 'user' ? 'You' : 'AI'}</span>
+          <div
+            key={idx}
+            className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            {msg.sender === 'ai' && (
+              <div className="w-6 h-6 rounded-lg bg-cyan-accent/10 border border-cyan-accent/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Bot size={12} className="text-cyan-accent" />
               </div>
-              <p className="text-sm">{msg.text}</p>
+            )}
+            <div
+              className={`max-w-[80%] rounded-xl px-3 py-2.5 text-xs leading-relaxed
+                ${msg.sender === 'user'
+                  ? 'bg-cyan-accent/10 border border-cyan-accent/20 text-text-primary'
+                  : 'bg-surface/60 border border-slate-border/20 text-text-secondary'
+                }`}
+            >
+              {msg.text}
             </div>
+            {msg.sender === 'user' && (
+              <div className="w-6 h-6 rounded-lg bg-surface border border-slate-border/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <User size={12} className="text-slate-muted" />
+              </div>
+            )}
           </div>
         ))}
+
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white/10 rounded-lg p-3 text-sm animate-pulse">Typing...</div>
+          <div className="flex gap-2.5 justify-start">
+            <div className="w-6 h-6 rounded-lg bg-cyan-accent/10 border border-cyan-accent/20 flex items-center justify-center flex-shrink-0">
+              <Bot size={12} className="text-cyan-accent" />
+            </div>
+            <div className="bg-surface/60 border border-slate-border/20 rounded-xl px-4 py-2.5 flex gap-1 items-center">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-cyan-accent/60 animate-bounce"
+                  style={{ animationDelay: `${i * 150}ms` }}
+                />
+              ))}
+            </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-3 border-t border-white/10 flex items-center space-x-2">
-        <button 
+      {/* Input Row */}
+      <div className="flex items-center gap-2 border-t border-slate-border/20 pt-3">
+        <button
+          id="voice-input-toggle"
           onClick={toggleListen}
-          className={`p-2 rounded-full transition-colors ${isListening ? 'bg-red-500 animate-pulse text-white' : 'glass-button'}`}
-          aria-label={isListening ? "Stop listening" : "Start voice input"}
+          className={`flex-shrink-0 p-2 rounded-lg transition-all duration-200 border
+            ${isListening
+              ? 'bg-red-500/15 border-red-500/30 text-red-400 animate-pulse'
+              : 'glass-button text-slate-muted hover:text-cyan-accent'
+            }`}
+          aria-label={isListening ? 'Stop listening' : 'Start voice input'}
         >
-          <Mic size={18} />
+          {isListening ? <MicOff size={15} /> : <Mic size={15} />}
         </button>
-        <input 
-          type="text" 
+
+        <input
+          id="ai-chat-input"
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-          placeholder="Ask me anything..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-fifa-purple"
+          placeholder="Ask the stadium AI..."
+          className="input-field py-2 text-xs"
           aria-label="Chat input"
         />
-        <button 
+
+        <button
+          id="ai-send-button"
           onClick={() => handleSend(input)}
-          className="p-2 rounded-lg bg-fifa-purple hover:bg-purple-700 text-white transition-colors"
+          disabled={!input.trim() || isLoading}
+          className="flex-shrink-0 p-2 rounded-lg bg-cyan-accent/10 border border-cyan-accent/30 
+            text-cyan-accent hover:bg-cyan-accent/20 hover:shadow-cyan-glow-sm 
+            transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
           aria-label="Send message"
         >
-          <Send size={18} />
+          <Send size={15} />
         </button>
       </div>
     </div>
