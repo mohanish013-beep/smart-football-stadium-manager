@@ -1,32 +1,56 @@
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 export async function processQuery(query) {
-  // Sanitize query
-  const sanitizedQuery = query.replace(/[<>]/g, "").trim().toLowerCase();
-  
+  // 1. Sanitize query
+  const sanitizedQuery = query.replace(/[<>]/g, "").trim();
+
   if (!sanitizedQuery) {
     return "Please ask a question.";
   }
 
-  // Simulated logic based on sanitized query
-  if (sanitizedQuery.includes("water") || sanitizedQuery.includes("drink")) {
-    return "Water stations are located near Block A and the North Washrooms.";
-  }
-  
-  if (sanitizedQuery.includes("bathroom") || sanitizedQuery.includes("washroom")) {
-    return "The nearest washrooms are in the North and South corridors.";
+  // 2. Fallback check if API key is missing
+  if (!API_KEY) {
+    return "System Error: Gemini API Key is not configured in environment variables.";
   }
 
-  if (sanitizedQuery.includes("hola") || sanitizedQuery.includes("español")) {
-    return "¡Hola! Bienvenido al Estadio Azteca. ¿Cómo puedo ayudarte hoy?";
-  }
-  
-  if (sanitizedQuery.includes("emergency") || sanitizedQuery.includes("help")) {
-    return "For emergencies, please use the SOS button on your screen immediately.";
-  }
+  try {
+    // 3. Connect directly to the real Google Gemini API
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are an elite, helpful AI stadium assistant for Estadio Azteca during the FIFA World Cup. 
+                  Answer the following user query professionally, keeping it concise and relevant to a football fan visiting the stadium:
+                  
+                  User query: "${sanitizedQuery}"`
+                }
+              ]
+            }
+          ]
+        })
+      }
+    );
 
-  // Simulated API latency
-  await new Promise(resolve => setTimeout(resolve, 800));
+    // 4. Parse response data
+    const data = await response.json();
 
-  return `I am your virtual stadium assistant. You asked: "${sanitizedQuery}". (Mock LLM response).`;
+    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+      return data.candidates[0].content.parts[0].text;
+    } else {
+      console.error("Unexpected API response structure:", data);
+      return "I ran into a hitch parsing that response. Let's try again!";
+    }
+
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    return "Connection failed. Please check your internet or API key configuration.";
+  }
 }
