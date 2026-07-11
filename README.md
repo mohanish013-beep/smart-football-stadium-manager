@@ -99,18 +99,6 @@ A dedicated emergency management dashboard featuring:
 
 ---
 
-# 🚀 Deploy
-
-The project is optimized for deployment on **Vercel**.
-
-```bash
-npm run build
-```
-
-Import the repository into Vercel and deploy with your environment variables configured.
-
----
-
 # 📌 Future Enhancements
 
 * Live IoT stadium sensor integration
